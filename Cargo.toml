@@ -10,3 +10,6 @@ edition = "2018"
 rand = "0.7.3"
 slow_nn = "0.1.1"
 gym = "2.2.1"
+
+[profile.test]
+opt-level = 3

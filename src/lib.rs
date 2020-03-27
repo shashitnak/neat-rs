@@ -597,21 +597,30 @@ mod tests {
                 (c.from, c.to, c.weight).into()
             })
             .collect();
-        let net = Network::from_conns(genome.bias, 4, 1, genome.nodes.len() - 4, &conns);
+        let net = Network::from_conns(genome.bias, 128, 6, genome.nodes.len() - 135, &conns);
         let mut fitness = 0.0;
         
         let client = GymClient::default();
-        let env = client.make("CartPole-v1");
-        let mut input = [0f64; 4];
+        let env = client.make("SpaceInvaders-ram-v0");
+        let mut input = [0f64; 128];
 
         let init = env.reset().unwrap().get_box().unwrap();
-        for i in 0..4 {
+        for i in 0..128 {
             input[i] = init[i];
         }
 
         loop {
-            let action = net.predict(&input, sigmoid)[0];
-            let action = if action < 0.5 { DISCRETE(0) } else { DISCRETE(1) };
+            let action = net.predict(&input, sigmoid);
+            let mut max = action[0];
+            let mut argmax = 0;
+            for i in 1..6 {
+                if action[i] > max {
+                    max = action[i];
+                    argmax = i;
+                }
+            }
+
+            let action = DISCRETE(argmax);
             let state = env.step(&action).unwrap();
             let input_box = state.observation.get_box().unwrap();
             if display {
@@ -623,7 +632,8 @@ mod tests {
             if state.is_done {
                 break;
             }
-            fitness += 1.;
+            // println!("{}", state.reward);
+            fitness += 1.0;
         }
         env.close();
 
@@ -640,12 +650,12 @@ mod tests {
 
     #[test]
     fn test_neat() {
-        let mut neat = Neat::new(4, 1, 1000);
+        let mut neat = Neat::new(128, 6, 10);
         
-        for gen in 1..=300 {
+        for gen in 1..=10 {
             println!("-------Gen #{}--------", gen);
             neat.natural_selection(calculate_cart);
-            // thread::sleep(time::Duration::from_millis(800));
+            thread::sleep(time::Duration::from_millis(200));
         }
     }
 }
