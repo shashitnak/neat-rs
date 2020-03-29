@@ -1,8 +1,10 @@
 [package]
 name = "neat-rs"
+license = "MIT"
 version = "0.1.0"
 authors = ["Shashi Kant <shashitnak@gmail.com>"]
 edition = "2018"
+description = "Implementation of neat algorithm in rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
