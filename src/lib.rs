@@ -1,5 +1,9 @@
 #![allow(unused)]
 
+//! # neat-rs
+//! 
+//! Implementation of neat algorithm in rust
+
 extern crate rand;
 
 use rand::random;
@@ -21,7 +25,7 @@ fn random_bias() -> f64 {
 }
 
 #[derive(Debug, Clone)]
-pub enum Node {
+enum Node {
     Input,
     Bias,
     Hidden(u128),
@@ -76,6 +80,7 @@ impl ConnectionState {
     }
 }
 
+/// Connection gene provided by the Genome struct that can be used to build the neural network
 #[derive(Debug, Clone)]
 pub struct Connection {
     pub from: usize,
@@ -113,8 +118,8 @@ impl Connection {
     fn change_weight(&mut self, weight: f64) {
         self.weight = weight;
     }
-
-    fn is_enabled(&self) -> bool {
+    /// Checks if the connection is enabled of not
+    pub fn is_enabled(&self) -> bool {
         match self.state {
             Enabled => true,
             Disabled => false
@@ -122,9 +127,10 @@ impl Connection {
     }
 }
 
+/// Genotype representation of the network
 #[derive(Debug)]
 pub struct Genome {
-    pub nodes: Vec<Option<Node>>,
+    nodes: Vec<Option<Node>>,
     pub conns: Vec<Option<Connection>>,
     pub bias: f64
 }
@@ -338,28 +344,30 @@ impl Genome {
     }
 
     fn mutate(mut self, neat: &mut Neat) -> Self {
-        if random::<f64>() < 0.01 {
-            self.bias = random_bias();
-        }
-        if random::<f64>() < 0.03 {
-            self.add_node(neat);
-        }
-        if random::<f64>() < 0.3 {
-            self.add_connection(neat);
-        }
-        if random::<f64>() < 0.01 {
-            self.bias *= 0.95;
-        }
-        for maybe_conn in &mut self.conns {
-            if let Some(conn) = maybe_conn.as_mut() {
-                if random::<f64>() < 0.1 {
-                    conn.change_weight(random_weight());
-                }
-                if random::<f64>() < 0.1 {
-                    conn.toggle();
-                }
-                if random::<f64>() < 0.1 {
-                    conn.shift_weight();
+        if random::<f64>() < neat.mutation_rate {
+            if random::<f64>() < 0.01 {
+                self.bias = random_bias();
+            }
+            if random::<f64>() < 0.03 {
+                self.add_node(neat);
+            }
+            if random::<f64>() < 0.3 {
+                self.add_connection(neat);
+            }
+            if random::<f64>() < 0.01 {
+                self.bias *= 0.95;
+            }
+            for maybe_conn in &mut self.conns {
+                if let Some(conn) = maybe_conn.as_mut() {
+                    if random::<f64>() < 0.1 {
+                        conn.change_weight(random_weight());
+                    }
+                    if random::<f64>() < 0.1 {
+                        conn.toggle();
+                    }
+                    if random::<f64>() < 0.1 {
+                        conn.shift_weight();
+                    }
                 }
             }
         }
@@ -371,19 +379,23 @@ impl Genome {
 
 use std::collections::HashSet;
 
+/// Neat struct that takes care of evolving the population based on the fitness scores
 #[derive(Debug)]
-struct Neat {
+pub struct Neat {
     nodes: usize,
     connections: HashSet<(usize, usize)>,
-    genomes: Vec<Genome>
+    genomes: Vec<Genome>,
+    mutation_rate: f64
 }
 
 impl Neat {
-    fn new(inputs: usize, outputs: usize, size: usize) -> Self {
+    /// Creates a new population
+    pub fn new(inputs: usize, outputs: usize, size: usize, mutation_rate: f64) -> Self {
         Self {
             nodes: 1 + inputs + outputs,
             connections: HashSet::new(),
             genomes: (0..size).map(|_| Genome::empty(inputs, outputs)).collect(),
+            mutation_rate
         }
     }
 
@@ -428,7 +440,9 @@ impl Neat {
         scores
     }
 
-    fn natural_selection(&mut self, calculate: fn(&Genome, bool) -> f64) {
+    /// Takes care of evaluation, speciation, selection and mutation and creates the
+    /// new population
+    pub fn next_generation(&mut self, calculate: fn(&Genome, bool) -> f64) {
         let adjusted_score = self.calculate_fitness(calculate);
         let total_mean = 100. / (adjusted_score.len() as f64);
 
@@ -492,7 +506,7 @@ mod tests {
 
     #[test]
     fn test_adding_connections() {
-        let mut neat = Neat::new(3, 2, 3);
+        let mut neat = Neat::new(3, 2, 3, 0.1);
         let mut genome = Genome::empty(3, 2);
         for _ in 0..3 {
             genome.add_connection(&mut neat);
@@ -503,7 +517,7 @@ mod tests {
 
     #[test]
     fn test_adding_nodes() {
-        let mut neat = Neat::new(3, 2, 3);
+        let mut neat = Neat::new(3, 2, 3, 0.1);
         let mut genome = Genome::empty(3, 2);
         for _ in 0..3 {
             genome.add_node(&mut neat);
@@ -515,7 +529,7 @@ mod tests {
 
     #[test]
     fn test_speciation() {
-        let mut neat = Neat::new(3, 2, 10);
+        let mut neat = Neat::new(3, 2, 10, 0.1);
         let mut genomes: Vec<_> = (0..1000).map(|_| Genome::empty(3, 2)).collect();
 
         for _ in 0..100 {
@@ -633,7 +647,7 @@ mod tests {
                 break;
             }
             // println!("{}", state.reward);
-            fitness += 1.0;
+            fitness += 1.0 + state.reward;
         }
         env.close();
 
@@ -650,11 +664,11 @@ mod tests {
 
     #[test]
     fn test_neat() {
-        let mut neat = Neat::new(128, 6, 10);
+        let mut neat = Neat::new(128, 6, 50, 0.1);
         
         for gen in 1..=10 {
             println!("-------Gen #{}--------", gen);
-            neat.natural_selection(calculate_cart);
+            neat.next_generation(calculate_cart);
             thread::sleep(time::Duration::from_millis(200));
         }
     }
