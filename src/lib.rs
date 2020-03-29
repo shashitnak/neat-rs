@@ -153,6 +153,7 @@ mod neat {
             }
         }
 
+        /// returns the number of hidden nodes
         pub fn hidden(&self) -> usize {
             self.nodes.len() - self.bio
         }
