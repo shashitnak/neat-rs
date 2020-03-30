@@ -467,7 +467,7 @@ mod neat {
                 species.sort_by(|&a, &b| adjusted_score[b].partial_cmp(&adjusted_score[a]).unwrap());
                 // println!("{:?}", species.iter().map(|&i| adjusted_score[i]).collect::<Vec<_>>());
 
-                let top = (0.6 * species.len() as f64).round() as usize;
+                let top = (0.75 * species.len() as f64).round() as usize;
 
                 let num = species.iter().map(|&i| adjusted_score[i]).sum::<f64>();
                 let num = (num / total_mean).round() as usize;
