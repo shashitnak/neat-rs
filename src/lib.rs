@@ -624,7 +624,7 @@ mod tests {
                 (c.from, c.to, c.weight).into()
             })
             .collect();
-        let net = Network::from_conns(genome.bias, 128, 6, genome.hidden() - 135, &conns);
+        let net = Network::from_conns(genome.bias, 128, 6, genome.hidden(), &conns);
         let mut fitness = 0.0;
         
         let client = GymClient::default();
