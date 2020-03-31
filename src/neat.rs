@@ -152,3 +152,18 @@ impl<T: Gene> GlobalNeatCounter for Neat<T> {
         new_node
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_po() {
+        let scores = [100., 1., 2., 4., 5., 8., 92.];
+        for _ in 0..100 {
+            for _ in 0..50 {
+                print!("{} ", pick_one(&scores));
+            }
+        }
+        println!();
+    }
+}

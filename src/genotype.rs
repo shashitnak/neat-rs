@@ -299,14 +299,14 @@ impl Gene for Genotype {
     }
 
     fn is_same_species_as(&self, other: &Self) -> bool {
-        self.distance_from(other) < 2.
+        self.distance_from(other) < 3.
     }
 
     fn cross(&self, other: &Self) -> Self {
         let mut nodes: Vec<_> = self
             .nodes
             .iter()
-            .take_while(|x| !x.as_ref().unwrap().is_hidden())
+            .take_while(|x| x.is_some() && !x.as_ref().unwrap().is_hidden())
             .cloned()
             .collect();
         
@@ -370,17 +370,16 @@ impl Gene for Genotype {
     fn mutate<T: GlobalNeatCounter>(mut self, neat: &mut T) -> Self {
         match randint(100) {
             0..=2 => self.add_node(neat),
-            3..=5 => self.new_bias(),
-            6..=8 => self.change_bias(),
-            9..=38 => self.add_connection(neat),
-            39..=60 => {
-                for conns in &mut self.conns {
-                    if let Some(connection) = conns.as_mut() {
-                        match randint(100) {
-                            0..=1 => connection.shift_weight(),
-                            2..=3 => connection.change_weight(random_weight()),
-                            _ => {}
-                        }
+            3 => self.new_bias(),
+            4 => self.change_bias(),
+            5..=34 => self.add_connection(neat),
+            34..=40 if self.conns.len() >= 1 => {
+                let index = randint(self.conns.len());
+                if let Some(connection) = self.conns[index].as_mut() {
+                    match randint(100) {
+                        0..=1 => connection.shift_weight(),
+                        2..=3 => connection.change_weight(random_weight()),
+                        _ => {}
                     }
                 }
             }

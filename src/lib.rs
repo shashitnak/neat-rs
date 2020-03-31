@@ -23,7 +23,7 @@ mod tests {
         let mut fitness = 0.0;
         
         let client = GymClient::default();
-        let env = client.make("CartPole-v0");
+        let env = client.make("CartPole-v1");
         let mut input = [0f64; 4];
 
         let init = env.reset().unwrap().get_box().unwrap();
@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_neat() {
-        let mut neat = Neat::<Genotype>::new(4, 1, 100, 0.01);
+        let mut neat = Neat::<Genotype>::new(4, 1, 300, 0.05);
 
         for i in 1..=100 {
             println!("---------Gen #{}--------", i);
