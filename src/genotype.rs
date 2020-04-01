@@ -162,18 +162,18 @@ impl Genotype {
         let len1 = self.conns.len();
         let len2 = other.conns.len();
 
-        let (excess_genes, len) = if len1 > len2 {
-            (len1 - len2, len2)
-        } else if len2 > len1 {
-            (len2 - len1, len1)
-        } else {
-            (0, len1)
-        };
-
-        let excess_genes = excess_genes as f64;
-
         let mut n1: f64 = 0.;
         let mut n2: f64 = 0.;
+
+        let (excess_genes, len) = if len1 > len2 {
+            n1 = (len1 - len2) as f64;
+            (n1, len2)
+        } else if len2 > len1 {
+            n2 = (len2 - len1) as f64;
+            (n2, len1)
+        } else {
+            (0., len1)
+        };
 
         for i in 0..len {
             match (&self.conns[i], &other.conns[i]) {
@@ -200,7 +200,7 @@ impl Genotype {
             n = 1.;
         }
 
-        (excess_genes / n) + (disjoint_genes / n) + 0.5*delta_w
+        (excess_genes / n) + (disjoint_genes / n) + 3.*delta_w
     }
 
     fn change_bias(&mut self) {
@@ -299,7 +299,7 @@ impl Gene for Genotype {
     }
 
     fn is_same_species_as(&self, other: &Self) -> bool {
-        self.distance_from(other) < 3.
+        self.distance_from(other) < 4.
     }
 
     fn cross(&self, other: &Self) -> Self {

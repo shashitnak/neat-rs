@@ -60,12 +60,76 @@ mod tests {
     }
 
     #[test]
-    fn test_neat() {
-        let mut neat = Neat::<Genotype>::new(4, 1, 300, 0.05);
+    fn test_cart() {
+        let mut neat = Neat::<Genotype>::new(4, 1, 1000, 1.);
 
         for i in 1..=100 {
             println!("---------Gen #{}--------", i);
             neat.next_generation(calculate_cart);
+        }
+    }
+
+    use std::{thread, time};
+
+    fn calculate_pacman(genome: &impl Gene, display: bool) -> f64 {
+        let mut time = 0.0;
+        let mut score = 0.0;
+        
+        let client = GymClient::default();
+        let env = client.make("MsPacman-ram-v0");
+        let mut input = [0f64; 128];
+
+        let init = env.reset().unwrap().get_box().unwrap();
+        for i in 0..128 {
+            input[i] = init[i];
+        }
+
+        loop {
+            let preds = genome.predict(&input);
+            let mut argmax = 0;
+            let mut max = preds[argmax];
+
+            for i in 1..6 {
+                if preds[i] > max {
+                    max = preds[i];
+                    argmax = i;
+                }
+            }
+
+            let action = DISCRETE(argmax);
+            let state = env.step(&action).unwrap();
+            let input_box = state.observation.get_box().unwrap();
+            if display {
+                env.render();
+                thread::sleep(time::Duration::from_millis(200));
+            }
+            for i in 0..4 {
+                input[i] = input_box[i];
+            }
+            if state.is_done {
+                break;
+            }
+            // println!("{}", state.reward);
+            time += 1.;
+            score += state.reward;
+        }
+        env.close();
+
+        if display {
+            // println!("Output = {:#?}", for_display);
+            println!("Time = {}, Score = {}", time, score);
+        }
+
+        time*(1. + score)
+    }
+
+    #[test]
+    fn test_pacman() {
+        let mut neat = Neat::<Genotype>::new(128, 6, 200, 1.);
+
+        for i in 1..=100 {
+            println!("---------Gen #{}--------", i);
+            neat.next_generation(calculate_pacman);
         }
     }
 }
