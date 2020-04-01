@@ -158,27 +158,31 @@ impl Genotype {
     fn distance_from(&self, other: &Self) -> f64 {
         let mut disjoint_genes = 0.;
         let mut delta_w = 0.;
-
-        let len1 = self.conns.len();
-        let len2 = other.conns.len();
+        let mut excess_genes = 0.;
 
         let mut n1: f64 = 0.;
         let mut n2: f64 = 0.;
 
-        let (excess_genes, len) = if len1 > len2 {
-            n1 = (len1 - len2) as f64;
-            (n1, len2)
-        } else if len2 > len1 {
-            n2 = (len2 - len1) as f64;
-            (n2, len1)
-        } else {
-            (0., len1)
-        };
+        if self.conns.len() > other.conns.len() {
+            for conn in self.conns.iter().skip(other.conns.len()) {
+                if let Some(_) = conn.as_ref() {
+                    excess_genes += 1.;
+                }
+            }
+            n1 += excess_genes;
+        } else if self.conns.len() < other.conns.len() {
+            for conn in other.conns.iter().skip(self.conns.len()) {
+                if let Some(_) = conn.as_ref() {
+                    excess_genes += 1.;
+                }
+            }
+            n2 += excess_genes;
+        }
 
-        for i in 0..len {
-            match (&self.conns[i], &other.conns[i]) {
-                (Some(conns1), Some(conns2)) => {
-                    delta_w += (conns1.weight - conns2.weight).abs();
+        for (conn1, conn2) in self.conns.iter().zip(other.conns.iter()) {
+            match (&conn1, &conn2) {
+                (Some(connection1), Some(connection2)) => {
+                    delta_w += (connection1.weight - connection2.weight).abs();
                     n1 += 1.;
                     n2 += 1.;
                 },
