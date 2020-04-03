@@ -43,24 +43,24 @@ impl<T: Gene> Neat<T> {
     }
 
     fn speciate(&self) -> Vec<Vec<usize>> {
-        let mut speciess = Vec::new();
-        speciess.push(vec![0]);
+        let mut species_plural = Vec::new();
+        species_plural.push(vec![0]);
 
         for i in 1..self.genomes.len() {
-            let mut add_to = 0;
-            for species in &mut speciess {
+            let mut added = false;
+            for species in &mut species_plural {
                 let index = species[randint(species.len())];
                 if self.genomes[i].is_same_species_as(&self.genomes[index]) {
                     species.push(i);
+                    added = true;
                     break;
                 }
-                add_to += 1;
             }
-            if add_to >= speciess.len() {
-                speciess.push(vec![i]);
+            if !added {
+                species_plural.push(vec![i]);
             }
         }
-        speciess
+        species_plural
     }
 
     fn calculate_fitness(&self, calculate: fn(&T, bool) -> f64) -> (Vec<f64>, f64) {
@@ -89,30 +89,35 @@ impl<T: Gene> Neat<T> {
 
         let total_mean = total_score / (scores.len() as f64);
 
-        let mut speciess = self.speciate();
+        let mut species_plural = self.speciate();
 
-        println!("Number of species = {}", speciess.len());
+        println!("Number of species = {}", species_plural.len());
         println!("Number of genomes = {}", self.genomes.len());
 
         let mut next_generation = Vec::new();
 
-        for species in &mut speciess {
+        for species in &mut species_plural {
             // Sort species based on fitness
             species.sort_by(|&a, &b| scores[b].partial_cmp(&scores[a]).unwrap());
 
             let top = (0.6 * species.len() as f64).round() as usize;
 
-            let species_scores: Vec<_> = species
+            let num: f64 = species
                 .iter()
                 .map(|&i| scores[i])
-                .collect();
-
-            let num: f64 = species_scores.iter().sum();
+                .sum();
+            
             let num = (num / total_mean).round() as usize;
 
+            let species_scores: Vec<_> = species
+            .iter()
+            .take(top)
+            .map(|&i| scores[i])
+            .collect();
+
             for _ in 0..num {
-                let index1 = pick_one(&species_scores[..top]);
-                let index2 = pick_one(&species_scores[..top]);
+                let index1 = species[pick_one(&species_scores)];
+                let index2 = species[pick_one(&species_scores)];
 
                 let one = &self.genomes[index1];
                 let two = &self.genomes[index2];
@@ -124,7 +129,7 @@ impl<T: Gene> Neat<T> {
                 };
 
                 if random::<f64>() < self.mutation_rate {
-                    child = child.mutate(self);
+                    child.mutate(self);
                 }
 
                 next_generation.push(child);

@@ -204,7 +204,7 @@ impl Genotype {
             n = 1.;
         }
 
-        (excess_genes / n) + (disjoint_genes / n) + 3.*delta_w
+        excess_genes/n + disjoint_genes/n + 3.*delta_w
     }
 
     fn change_bias(&mut self) {
@@ -314,36 +314,29 @@ impl Gene for Genotype {
             .cloned()
             .collect();
         
-        let mut add_nodes = |conn: &Connection, is_self: bool| {
-            let from = conn.from;
-            let to = conn.to;
-            if is_self {
-                nodes.sparse_insert(from, self.nodes[from].clone().unwrap());
-                nodes.sparse_insert(to, self.nodes[to].clone().unwrap());
-            } else {
-                nodes.sparse_insert(from, other.nodes[from].clone().unwrap());
-                nodes.sparse_insert(to, other.nodes[to].clone().unwrap());
-            }
+        let mut add_nodes = |from, to| {
+            nodes.sparse_insert(from, self.nodes[from].clone().unwrap());
+            nodes.sparse_insert(to, self.nodes[to].clone().unwrap());
         };
         
         let mut conns = Vec::new();
         let bias = self.bias;
         
-        let len = (self.conns.len() as f64).min(other.conns.len() as f64) as usize;
+        let len = (self.conns.len() as i32).min(other.conns.len() as i32) as usize;
 
         for i in 0..len {
             let new_conn = match (&self.conns[i], &other.conns[i]) {
                 (Some(conn1), Some(conn2)) => {
-                    if random::<f64>() < 0.5 {
-                        add_nodes(conn1, true);
+                    if random::<f64>() < 0.8 {
+                        add_nodes(conn1.from, conn1.to);
                         Some(conn1.clone())
                     } else {
-                        add_nodes(conn2, false);
+                        add_nodes(conn2.from, conn2.to);
                         Some(conn2.clone())
                     }
                 },
                 (Some(conn), None) => {
-                    add_nodes(conn, true);
+                    add_nodes(conn.from, conn.to);
                     Some(conn.clone())
                 },
                 _ => {
@@ -355,7 +348,7 @@ impl Gene for Genotype {
 
         for maybe_conn in self.conns.iter().skip(len) {
             if let Some(conn) = maybe_conn {
-                add_nodes(conn, true);
+                add_nodes(conn.from, conn.to);
                 conns.push(Some((*conn).clone()));
             } else {
                 conns.push(None);
@@ -371,7 +364,7 @@ impl Gene for Genotype {
         }
     }
 
-    fn mutate<T: GlobalNeatCounter>(mut self, neat: &mut T) -> Self {
+    fn mutate<T: GlobalNeatCounter>(&mut self, neat: &mut T) {
         match randint(100) {
             0..=2 => self.add_node(neat),
             3 => self.new_bias(),
@@ -389,8 +382,6 @@ impl Gene for Genotype {
             }
             _ => {}
         }
-
-        self
     }
 
     fn predict(&self, input: &[f64]) -> Vec<f64> {
@@ -467,7 +458,7 @@ mod tests {
         let mut neat = Neat::new(3, 2);
 
         for _ in 0..1000 {
-            genome1 = genome1.mutate(&mut neat);
+            genome1.mutate(&mut neat);
         }
     }
 }

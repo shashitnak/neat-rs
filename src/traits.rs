@@ -8,7 +8,7 @@ pub trait Gene {
     /// method for cross over of two genomes
     fn cross(&self, other: &Self) -> Self;
     /// method for mutation of the genome
-    fn mutate<T: GlobalNeatCounter>(self, neat: &mut T) -> Self;
+    fn mutate<T: GlobalNeatCounter>(&mut self, neat: &mut T);
     /// constructs the neural network and returns the output as a vec of floats
     fn predict(&self, input: &[f64]) -> Vec<f64>;
 }
