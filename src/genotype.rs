@@ -384,7 +384,7 @@ impl Gene for Genotype {
         }
     }
 
-    fn predict(&self, input: &[f64]) -> Vec<f64> {
+    fn predict(&self, input: &[f64], activate: fn(f64) -> f64) -> Vec<f64> {
         let connections: Vec<_> = self
             .conns
             .iter()
@@ -400,7 +400,7 @@ impl Gene for Genotype {
         let hidden = self.nodes.len() - 1 - inputs - outputs;
         
         let net = slow_nn::Network::from_conns(self.bias, inputs, outputs, hidden, &connections);
-        net.predict(input, tanh)
+        net.predict(input, activate)
     }
 }
 

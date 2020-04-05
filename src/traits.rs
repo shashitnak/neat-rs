@@ -10,7 +10,7 @@ pub trait Gene {
     /// method for mutation of the genome
     fn mutate<T: GlobalNeatCounter>(&mut self, neat: &mut T);
     /// constructs the neural network and returns the output as a vec of floats
-    fn predict(&self, input: &[f64]) -> Vec<f64>;
+    fn predict(&self, input: &[f64], activate: fn(f64) -> f64) -> Vec<f64>;
 }
 
 

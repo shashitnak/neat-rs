@@ -16,7 +16,3 @@ pub fn random_weight() -> f64 {
 pub fn random_bias() -> f64 {
     randf(30.)
 }
-
-pub fn tanh(x: f64) -> f64 {
-    x.tanh()
-}

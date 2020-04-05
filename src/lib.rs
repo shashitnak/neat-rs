@@ -18,6 +18,10 @@ mod tests {
     use super::*;
 
     use gym::{GymClient, SpaceData::DISCRETE};
+    
+    fn tanh(x: f64) -> f64 {
+        x.tanh()
+    }
 
     fn calculate_cart(genome: &impl Gene, display: bool) -> f64 {
         let mut fitness = 0.0;
@@ -32,7 +36,7 @@ mod tests {
         }
 
         loop {
-            let pred = genome.predict(&input)[0];
+            let pred = genome.predict(&input, tanh)[0];
 
             let action = DISCRETE(if pred < 0. { 0 } else { 1 });
             let state = env.step(&action).unwrap();
@@ -85,7 +89,7 @@ mod tests {
         }
 
         loop {
-            let preds = genome.predict(&input);
+            let preds = genome.predict(&input, tanh);
             let mut argmax = 0;
             let mut max = preds[argmax];
 
