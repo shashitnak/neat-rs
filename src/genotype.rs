@@ -285,6 +285,25 @@ impl Genotype {
             }
         }
     }
+
+    /// Creates and returns the network corresponding to the genotype
+    pub fn get_network(&self) -> slow_nn::Network {
+        let connections: Vec<_> = self
+            .conns
+            .iter()
+            .filter(|c| c.is_some())
+            .map(|c| match c.as_ref() {
+                Some(conns) => (conns.from, conns.to, conns.weight).into(),
+                _ => panic!("this line will never be reached"),
+            })
+            .collect();
+    
+        let inputs = self.inputs;
+        let outputs = self.outputs;
+        let hidden = self.nodes.len() - 1 - inputs - outputs;
+        
+        slow_nn::Network::from_conns(self.bias, inputs, outputs, hidden, &connections)
+    }
 }
 
 impl Gene for Genotype {
