@@ -1,7 +1,7 @@
 [package]
 name = "neat-rs"
 license = "MIT"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["Shashi Kant <shashitnak@gmail.com>"]
 edition = "2018"
 description = "Implementation of neat algorithm in rust"
@@ -12,7 +12,7 @@ documentation = "https://docs.rs/neat-rs"
 
 [dependencies]
 rand = "0.7.3"
-slow_nn = "0.1.1"
+slow_nn = "0.1.2"
 gym = "2.2.1"
 
 [profile.test]
