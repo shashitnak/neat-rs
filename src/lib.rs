@@ -65,11 +65,12 @@ mod tests {
 
     #[test]
     fn test_cart() {
-        let mut neat = Neat::<Genotype>::new(4, 1, 1000, 1.);
+        let mut neat = Neat::<Genotype>::new(4, 1, 1000, 0.1);
 
         for i in 1..=100 {
             println!("---------Gen #{}--------", i);
-            neat.next_generation(calculate_cart);
+            let (scores, total_score) = neat.calculate_fitness(calculate_cart);
+            neat.next_generation(&scores, total_score);
         }
     }
 
@@ -133,7 +134,8 @@ mod tests {
 
         for i in 1..=100 {
             println!("---------Gen #{}--------", i);
-            neat.next_generation(calculate_pacman);
+            let (scores, total_score) = neat.calculate_fitness(calculate_pacman);
+            neat.next_generation(&scores, total_score);
         }
     }
 }

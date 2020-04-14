@@ -63,7 +63,9 @@ impl<T: Gene> Neat<T> {
         species_plural
     }
 
-    fn calculate_fitness(&self, calculate: impl Fn(&T, bool) -> f64) -> (Vec<f64>, f64) {
+    /// Evaluates all the genomes based on the fitness function and returns all the scores
+    /// and the total score
+    pub fn calculate_fitness(&self, calculate: impl Fn(&T, bool) -> f64) -> (Vec<f64>, f64) {
         let mut total_score = 0.;
         let mut best_score = 0.;
         let mut fittest = &self.genomes[0];
@@ -82,11 +84,9 @@ impl<T: Gene> Neat<T> {
         (scores, total_score)
     }
 
-    /// Takes care of evaluation, speciation, selection and mutation and creates the
+    /// Takes care of speciation, selection and mutation and creates the
     /// new population
-    pub fn next_generation(&mut self, calculate: impl Fn(&T, bool) -> f64) {
-        let (scores, total_score) = self.calculate_fitness(calculate);
-
+    pub fn next_generation(&mut self, scores: &[f64], total_score: f64) {
         let total_mean = total_score / (scores.len() as f64);
 
         let mut species_plural = self.speciate();
